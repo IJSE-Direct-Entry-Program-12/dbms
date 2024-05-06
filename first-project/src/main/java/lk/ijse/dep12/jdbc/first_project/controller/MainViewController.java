@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import lk.ijse.dep12.jdbc.first_project.to.Student;
 
@@ -82,7 +83,36 @@ public class MainViewController {
     }
 
     public void btnDeleteOnAction(ActionEvent event) {
+        try (Connection connection = DriverManager
+                .getConnection("jdbc:postgresql://localhost:12500/dep12_first_project",
+                        "postgres", "psql")) {
+            PreparedStatement stm = connection.prepareStatement("DELETE FROM student WHERE id = ?");
+            ObservableList<Student> selectedStudents = tblStudent.getSelectionModel().getSelectedItems();
+            connection.setAutoCommit(false);
+            try {
+                for (Student selectedStudent : selectedStudents) {
+                    stm.setInt(1,
+                            Integer.parseInt(selectedStudent.getId().replace("S-", "")));
+                    stm.addBatch();
+                }
+                stm.executeBatch();
+                ObservableList<Student> studentList = tblStudent.getItems();
+                studentList.removeAll(selectedStudents);
+            }catch (Throwable t){
+                connection.rollback();
+                new Alert(Alert.AlertType.ERROR, "Failed to delete students, try again").show();
+                t.printStackTrace();
+            }finally{
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Something went wrong, please try again").show();
+        }
+    }
 
+    public void tblStudentOnKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.DELETE) btnDelete.fire();
     }
 
     public void btnNewStudentOnAction(ActionEvent event) {
@@ -93,8 +123,6 @@ public class MainViewController {
 
     }
 
-    public void tblStudentOnKeyPressed(KeyEvent event) {
 
-    }
 
 }
