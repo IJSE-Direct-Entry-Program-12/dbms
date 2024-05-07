@@ -8,6 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import lk.ijse.dep12.jdbc.first_project.db.SingletonConnection;
 import lk.ijse.dep12.jdbc.first_project.to.Student;
 
 import java.sql.*;
@@ -58,10 +59,8 @@ public class MainViewController {
     }
 
     private void loadAllStudents(){
-        try (Connection connection = DriverManager.
-                getConnection("jdbc:postgresql://localhost:12500/dep12_first_project",
-                "postgres", "psql")) {
-            Statement stm = connection.createStatement();
+        try  {
+            Statement stm = SingletonConnection.getInstance().getConnection().createStatement();
             ResultSet rst = stm.executeQuery("TABLE student");
             ObservableList<Student> studentList = tblStudent.getItems();
             while (rst.next()) {
@@ -83,9 +82,8 @@ public class MainViewController {
     }
 
     public void btnDeleteOnAction(ActionEvent event) {
-        try (Connection connection = DriverManager
-                .getConnection("jdbc:postgresql://localhost:12500/dep12_first_project",
-                        "postgres", "psql")) {
+        try  {
+            Connection connection = SingletonConnection.getInstance().getConnection();
             PreparedStatement stm = connection.prepareStatement("DELETE FROM student WHERE id = ?");
             ObservableList<Student> selectedStudents = tblStudent.getSelectionModel().getSelectedItems();
             connection.setAutoCommit(false);
@@ -130,10 +128,9 @@ public class MainViewController {
         String address = txtAddress.getText().strip();
         String contact = txtContact.getText().strip();
 
-        try (Connection connection = DriverManager
-                .getConnection("jdbc:postgresql://localhost:12500/dep12_first_project",
-                "postgres", "psql")) {
-            PreparedStatement stm = connection.prepareStatement("""
+        try {
+            PreparedStatement stm = SingletonConnection.getInstance().getConnection()
+                    .prepareStatement("""
                     INSERT INTO student (name, address, contact) VALUES (?, ?, ?)
                     """, Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, name);
