@@ -19,7 +19,7 @@ public class AppInitializer extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         Connection connection = SingletonConnection.getInstance().getConnection();
-        Runtime.getRuntime().addShutdownHook(new Thread(()->{
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 if (connection != null && !connection.isClosed()) connection.close();
             } catch (SQLException e) {
